@@ -14,8 +14,11 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
     MJCFBaseBulletEnv.__init__(self, self.robot)
     self.stateId = -1
 
+    self.torqueForce = 100
+    self.gravity = 9.8
+
   def create_single_player_scene(self, bullet_client):
-    return SingleRobotEmptyScene(bullet_client, gravity=9.8, timestep=0.0165, frame_skip=1)
+    return SingleRobotEmptyScene(bullet_client, gravity=self.gravity, timestep=0.0165, frame_skip=1)
 
   def reset(self):
     if (self.stateId >= 0):
@@ -26,6 +29,50 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
       self.stateId = self._p.saveState()
       #print("InvertedPendulumBulletEnv reset self.stateId=",self.stateId)
     return r
+
+  def get_features(self):
+    return self.torqueForce, self.gravity
+  
+  def set_features(self, torqueForce=100, gravity=9.8):
+    self.reset()
+    
+    self.torqueForce = torqueForce
+    self.gravity = gravity
+
+    self._p.setGravity(0, 0, -self.gravity)
+
+
+  def randomize(self, level=0):
+    self.reset()
+
+    if(level == 0):
+      self.torqueForce = self.np_random.uniform(low=90, high=110)
+      self.gravity = self.np_random.uniform(low=8.82, high=10.78)
+
+    elif(level == 1):
+      if(self.np_random.uniform(low=0, high=0.5) > 0.5):
+        self.torqueForce = self.np_random.uniform(low=75, high=90)
+      else:
+        self.torqueForce = self.np_random.uniform(low=110, high=125)
+      
+      if(self.np_random.uniform(low=0, high=0.5) > 0.5):
+        self.gravity = self.np_random.uniform(low=7.35, high=8.82)
+      else:
+        self.gravity = self.np_random.uniform(low=10.78, high=12.25)
+
+    else:
+      print("ERROR: Invalid randomization mode selected, only 0 or 1 are available")
+    
+    #print("randomizing, torque: ", self.torqueForce  , " gravity ", self.gravity)
+
+    self._p.setGravity(0, 0, -self.gravity)
+  
+  def apply_action(self, a):
+    assert (np.isfinite(a).all())
+    if not np.isfinite(a).all():
+      print("a is inf")
+      a[0] = 0
+    self.slider.set_motor_torque(self.torqueForce * float(np.clip(a[0], -1, +1)))
 
   def step(self, a):
     self.robot.apply_action(a)
@@ -60,6 +107,9 @@ class InvertedDoublePendulumBulletEnv(MJCFBaseBulletEnv):
     self.robot = InvertedDoublePendulum()
     MJCFBaseBulletEnv.__init__(self, self.robot)
     self.stateId = -1
+  
+  def randomize(self, level=0):
+    print("randomizing")
 
   def create_single_player_scene(self, bullet_client):
     return SingleRobotEmptyScene(bullet_client, gravity=9.8, timestep=0.0165, frame_skip=1)
