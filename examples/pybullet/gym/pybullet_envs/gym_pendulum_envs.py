@@ -16,6 +16,7 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
 
     self.torqueForce = 100
     self.gravity = 9.8
+    self.poleMass = 5
 
   def create_single_player_scene(self, bullet_client):
     return SingleRobotEmptyScene(bullet_client, gravity=self.gravity, timestep=0.0165, frame_skip=1)
@@ -31,15 +32,25 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
     return r
 
   def get_features(self):
-    return self.torqueForce, self.gravity
+    return self.torqueForce, self.gravity, self.poleMass
   
-  def set_features(self, torqueForce=100, gravity=9.8):
+  def set_features(self, torqueForce=100, gravity=9.8, mass=5):
     self.reset()
     
     self.torqueForce = torqueForce
     self.gravity = gravity
+    self.poleMass = mass
 
     self._p.setGravity(0, 0, -self.gravity)
+
+    bodyIndex = self.robot.parts["pole"].bodyIndex
+    bodyUniqueId = self.robot.parts["pole"].bodies[bodyIndex]
+    partIndex = self.robot.parts["pole"].bodyPartIndex
+
+    info = self._p.getDynamicsInfo(bodyUniqueId, partIndex)
+    self._p.changeDynamics(bodyUniqueId, partIndex, mass = self.poleMass)
+
+    info = self._p.getDynamicsInfo(bodyUniqueId, partIndex)
 
 
   def randomize(self, level=0):
@@ -48,6 +59,7 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
     if(level == 0):
       self.torqueForce = self.np_random.uniform(low=90, high=110)
       self.gravity = self.np_random.uniform(low=8.82, high=10.78)
+      self.poleMass = self.np_random.uniform(low=4.5, high=5.5)
 
     elif(level == 1):
       if(self.np_random.uniform(low=0, high=0.5) > 0.5):
@@ -60,12 +72,26 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
       else:
         self.gravity = self.np_random.uniform(low=10.78, high=12.25)
 
+      if(self.np_random.uniform(low=0, high=0.5) > 0.5):
+        self.poleMass = self.np_random.uniform(low=3.75, high=4.5)
+      else:
+        self.poleMass = self.np_random.uniform(low=5.5, high=6.25)
+
     else:
       print("ERROR: Invalid randomization mode selected, only 0 or 1 are available")
     
     #print("randomizing, torque: ", self.torqueForce  , " gravity ", self.gravity)
 
     self._p.setGravity(0, 0, -self.gravity)
+
+    bodyIndex = self.robot.parts["pole"].bodyIndex
+    bodyUniqueId = self.robot.parts["pole"].bodies[bodyIndex]
+    partIndex = self.robot.parts["pole"].bodyPartIndex
+
+    info = self._p.getDynamicsInfo(bodyUniqueId, partIndex)
+    self._p.changeDynamics(bodyUniqueId, partIndex, mass = self.poleMass)
+
+    info = self._p.getDynamicsInfo(bodyUniqueId, partIndex)
   
   def apply_action(self, a):
     assert (np.isfinite(a).all())
