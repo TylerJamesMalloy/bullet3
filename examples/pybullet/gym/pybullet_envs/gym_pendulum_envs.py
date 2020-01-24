@@ -126,6 +126,10 @@ class InvertedPendulumSwingupBulletEnv(InvertedPendulumBulletEnv):
     MJCFBaseBulletEnv.__init__(self, self.robot)
     self.stateId = -1
 
+    self.torqueForce = 100
+    self.gravity = 9.8
+    self.poleMass = 5
+
 
 class InvertedDoublePendulumBulletEnv(MJCFBaseBulletEnv):
 

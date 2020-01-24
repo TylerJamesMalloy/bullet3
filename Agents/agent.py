@@ -70,8 +70,8 @@ def test_agent(agent_step):
             learning_results.to_pickle(FOLDER +  "/results/SAC_"+ str(coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(NUM_RESAMPLES) + ".pkl")
             sac_model.save(FOLDER + "/models/SAC_" + str(coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(NUM_RESAMPLES))
     
-    print("saving to file: " + FOLDER +  "/features_" + str(agent_step) + ".pkl")
-    features.to_pickle(FOLDER +  "/features_" + str(agent_step) + ".pkl")
+        print("saving to file: " + FOLDER +  "/features_" + str(agent_step) + "_" + str(coef) + ".pkl")
+        features.to_pickle(FOLDER +  "/features_" + str(agent_step) + "_" + str(coef) + ".pkl")
 
 def mp_handler():
     p = multiprocessing.Pool(len(AGENTS))
@@ -80,13 +80,13 @@ def mp_handler():
 if __name__ == '__main__':
     
     """ GLOBAL VARIABLES """
-    COEFS = [0.06]  # 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, 0.2
-    AGENTS = np.linspace(1,32,32, dtype=int)
-    NUM_RESAMPLES = 5
+    COEFS = [0.02, 0.04, 0.06, 0.08, 0.1]  #  0.12, 0.14, 0.16, 0.2
+    AGENTS = np.linspace(1,16,16, dtype=int)
+    NUM_RESAMPLES = 4
 
-    ENVIRONMENT_NAME = "InvertedPendulumBulletEnv-v0"
-    NUM_TRAINING_STEPS = 100000
-    FOLDER = "Pendulum"
+    ENVIRONMENT_NAME = "InvertedPendulumSwingupBulletEnv-v0"
+    NUM_TRAINING_STEPS = 200000
+    FOLDER = "InvertedPendulumSwingupBulletEnv"
 	
     # Create target Directory if don't exist
     if not os.path.exists(FOLDER):
