@@ -21,3 +21,13 @@ pip-selfcheck.json
 /build
 /dist
 *.eggs
+*.cmake
+*.so
+build3/
+
+# Test models and results 
+*.pkl
+*.zip
+
+# VirtualEnv
+bulletEnv/

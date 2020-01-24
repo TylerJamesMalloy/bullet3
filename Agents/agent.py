@@ -27,6 +27,8 @@ InvertedDoublePendulumBulletEnv-v0
 
 def test_agent(agent_step):
     for coef in COEFS:
+        features = pd.DataFrame()
+
         clac_env = gym.make(ENVIRONMENT_NAME)
         clac_env = DummyVecEnv([lambda: clac_env])
 
@@ -39,22 +41,37 @@ def test_agent(agent_step):
         #model = SAC(MlpPolicy, env, verbose=1)
         sac_model = SAC(MlpPolicy, sac_env, ent_coef=coef, verbose=0)
 
-        # Set both environments to the same resampled values
-        clac_env.env_method("randomize") 
-        torqueForce, gravity = clac_env.env_method("get_features")[0]
-        sac_env.env_method("set_features", torqueForce, gravity) 
-
         (clac_model, learning_results) = clac_model.learn(total_timesteps=NUM_TRAINING_STEPS)
 
-        learning_results.to_pickle(FOLDER + "/results/CLAC_" + str(coef).replace(".", "p") + "_" + str(agent_step) + ".pkl")
-        clac_model.save(FOLDER +  "/models/CLAC_" + str(coef).replace(".", "p") + "_" + str(agent_step))
+        learning_results.to_pickle(FOLDER + "/results/CLAC_" + str(coef).replace(".", "p") + "_" + str(agent_step) + "_0.pkl")
+        clac_model.save(FOLDER +  "/models/CLAC_" + str(coef).replace(".", "p") + "_" + str(agent_step) + "_0")
 
         (sac_model, learning_results) = sac_model.learn(total_timesteps=NUM_TRAINING_STEPS)
 
-        learning_results.to_pickle(FOLDER +  "/results/SAC_"+ str(coef).replace(".", "p") + "_" + str(agent_step) + ".pkl")
-        sac_model.save(FOLDER + "/models/SAC_" + str(coef).replace(".", "p") + "_" + str(agent_step))
-        
-#agents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+        learning_results.to_pickle(FOLDER +  "/results/SAC_"+ str(coef).replace(".", "p") + "_" + str(agent_step) + "_0.pkl")
+        sac_model.save(FOLDER + "/models/SAC_" + str(coef).replace(".", "p") + "_" + str(agent_step) + "_0")
+
+        for resample_step in range(NUM_RESAMPLES):
+            # Set both environments to the same resampled values
+            clac_env.env_method("randomize") 
+            torqueForce, gravity, poleMass = clac_env.env_method("get_features")[0]
+            sac_env.env_method("set_features", torqueForce, gravity, poleMass) 
+
+            d = {"Coefficient": coef, "Resample Step":resample_step, "TorqueForce": torqueForce, "graavity": gravity}
+            features = features.append(d, ignore_index = True)
+
+            (clac_model, learning_results) = clac_model.learn(total_timesteps=NUM_TRAINING_STEPS)
+
+            learning_results.to_pickle(FOLDER + "/results/CLAC_" + str(coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(NUM_RESAMPLES) + ".pkl")
+            clac_model.save(FOLDER +  "/models/CLAC_" + str(coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(NUM_RESAMPLES))
+
+            (sac_model, learning_results) = sac_model.learn(total_timesteps=NUM_TRAINING_STEPS)
+
+            learning_results.to_pickle(FOLDER +  "/results/SAC_"+ str(coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(NUM_RESAMPLES) + ".pkl")
+            sac_model.save(FOLDER + "/models/SAC_" + str(coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(NUM_RESAMPLES))
+    
+    print("saving to file: " + FOLDER +  "/features_" + str(agent_step) + ".pkl")
+    features.to_pickle(FOLDER +  "/features_" + str(agent_step) + ".pkl")
 
 def mp_handler():
     p = multiprocessing.Pool(len(AGENTS))
@@ -63,11 +80,12 @@ def mp_handler():
 if __name__ == '__main__':
     
     """ GLOBAL VARIABLES """
-    COEFS = [0.04]
-    AGENTS = np.linspace(0,1,1, dtype=int)
+    COEFS = [0.06]  # 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, 0.2
+    AGENTS = np.linspace(1,32,32, dtype=int)
+    NUM_RESAMPLES = 5
 
     ENVIRONMENT_NAME = "InvertedPendulumBulletEnv-v0"
-    NUM_TRAINING_STEPS = 1000
+    NUM_TRAINING_STEPS = 100000
     FOLDER = "Pendulum"
 	
     # Create target Directory if don't exist
