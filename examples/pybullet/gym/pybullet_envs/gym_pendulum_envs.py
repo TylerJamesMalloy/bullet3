@@ -65,6 +65,15 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
   def randomize(self, level=0):
     self.reset()
 
+    self.torqueForce = self.np_random.normal(loc=100, scale=10)    # Originally 100 
+    self.gravity = self.np_random.normal(loc=9.8, scale=1)      # Originally 9.8 
+    self.poleMass = self.np_random.normal(loc=5.0, scale=1)     # Originally 5 
+
+    print("RANDOMIZING: torqueForce: ", self.torqueForce, "gravity: ", self.gravity, "RANDOMIZING: poleMass: ", self.poleMass)
+
+    # OLD RANDOMIZATION METHOD
+
+    """
     if(level == 0):
       self.torqueForce = self.np_random.uniform(low=90, high=110)
       self.gravity = self.np_random.uniform(low=8.82, high=10.78)
@@ -88,6 +97,7 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
 
     else:
       print("ERROR: Invalid randomization mode selected, only 0 or 1 are available")
+    """
     
     #print("randomizing, torque: ", self.torqueForce  , " gravity ", self.gravity)
 
@@ -180,6 +190,14 @@ class InvertedDoublePendulumBulletEnv(MJCFBaseBulletEnv):
   def randomize(self, level=0):
     self.reset()
 
+    self.torqueForce = self.np_random.normal(loc=200, scale=10)   # Originally 200 
+    self.gravity = self.np_random.normal(loc=9.8, scale=1)        # Originally 9.8 
+    self.pole1Mass = self.np_random.normal(loc=5.0, scale=1)      # Originally 5 
+    self.pole2Mass = self.np_random.normal(loc=5.0, scale=1)      # Originally 5 
+
+    ### OLD RANDOMIZATION METHOD
+
+    """
     if(level == 0):
       self.torqueForce = self.np_random.uniform(low=180, high=220)
       self.gravity = self.np_random.uniform(low=8.82, high=10.78)
@@ -208,6 +226,7 @@ class InvertedDoublePendulumBulletEnv(MJCFBaseBulletEnv):
 
     else:
       print("ERROR: Invalid randomization mode selected, only 0 or 1 are available")
+    """
     
     #print("randomizing, torque: ", self.torqueForce  , " gravity ", self.gravity)
 

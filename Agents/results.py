@@ -7,16 +7,15 @@ plt.style.use('fivethirtyeight')
 sns.set(style="ticks", color_codes=True, rc={"lines.linewidth": 2.5})
 sns.set(font_scale=2.5)
 
-nchain_filenames = [    "Pendulum", # InvertedPendulumBulletEnv
+nchain_filenames = [    "InvertedPendulumBulletEnv", 
                         "InvertedPendulumSwingupBulletEnv",
                         "InvertedDoublePendulumBulletEnv"
                     ]
 
-NUM_RESAMPLES = 1
+NUM_RESAMPLES = 6
 NUM_RESAMPLES += 1 # 1 more than number of resamples
-# NUM_GENERALIZATION_EPISODES = 100 # Unused
 
-clac_tags = [[0.3], [], []] 
+clac_tags = [[0.3], [0.5], []] 
 clac_env_strings = []
 for env in clac_tags:
     env_tags = []
@@ -24,7 +23,7 @@ for env in clac_tags:
         env_tags.append(str(tag).replace(".", "p"))
     clac_env_strings.append(env_tags)
 
-sac_tags = [[0.3], [], []]
+sac_tags = [[0.3], [0.5], []]
 sac_env_strings = []
 for env in sac_tags:
     env_tags = []
@@ -48,7 +47,7 @@ for index, nchain_filename in enumerate(nchain_filenames):
                 clac_data = pd.read_pickle(clac_model_file)
                 clac_data["Resample"] = resample_num
                 clac_data["Environment"] = nchain_filename
-                clac_data["Timestep"] = clac_data["Timestep"].astype(float).round(-3)
+                clac_data["Timestep"] = clac_data["Timestep"].astype(float).round(-2)
                 clac_data["Mean Reward"] = clac_data["Episode Reward"].rolling(20).mean()
                 clac_data.loc[clac_data['Model'].str.contains('CLAC'), 'Model'] = 'CLAC'
 
@@ -64,7 +63,7 @@ for index, nchain_filename in enumerate(nchain_filenames):
                 sac_data = pd.read_pickle(sac_model_file)
                 sac_data["Resample"] = resample_num
                 sac_data["Environment"] = nchain_filename
-                sac_data["Timestep"] = sac_data["Timestep"].astype(float).round(-3)
+                sac_data["Timestep"] = sac_data["Timestep"].astype(float).round(-2)
                 sac_data["Mean Reward"] = sac_data["Episode Reward"].rolling(20).mean()
                 sac_data.loc[sac_data['Model'].str.contains('SAC'), 'Model'] = 'SAC'
 
@@ -79,19 +78,18 @@ InvertedDoublePendulumBulletEnv_Data = All_Data.loc[All_Data["Environment"] == n
 fig, axes = plt.subplots(1, 3)
 
 InvertedPendulumBulletEnv_Data_0 = All_Data.loc[All_Data["Resample"] == 0]
-InvertedPendulumBulletEnv_Data_1 = All_Data.loc[All_Data["Resample"] == 1]
+InvertedPendulumBulletEnv_Data_1 = All_Data.loc[All_Data["Resample"] == NUM_RESAMPLES - 1]
 
-ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci="sd", data=InvertedPendulumBulletEnv_Data_0, ax=axes[0]) 
-ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci="sd", data=InvertedPendulumBulletEnv_Data_1, ax=axes[1]) 
-
+#ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci="sd", data=InvertedPendulumBulletEnv_Data_0, ax=axes[1]) 
+#ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci="sd", data=InvertedPendulumBulletEnv_Data_1, ax=axes[2]) 
 
 #ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci=68, data=InvertedPendulumBulletEnv_Data, ax=axes[0]) 
 #ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci=68, data=InvertedPendulumSwingupBulletEnv_Data, ax=axes[1]) 
 #ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci=68, data=InvertedDoublePendulumBulletEnv_Data, ax=axes[2]) 
 
-#ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", data=InvertedPendulumBulletEnv_Data, ax=axes[0]) 
-#ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", data=InvertedPendulumSwingupBulletEnv_Data, ax=axes[1]) 
-#ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", data=InvertedDoublePendulumBulletEnv_Data, ax=axes[2]) 
+ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", data=InvertedPendulumBulletEnv_Data, ax=axes[0]) 
+ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", data=InvertedPendulumSwingupBulletEnv_Data, ax=axes[1]) 
+ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", data=InvertedDoublePendulumBulletEnv_Data, ax=axes[2]) 
 
 #ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", data=CLAC_DATA, ax=axes[0]) 
 #ax1 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", data=SAC_DATA, ax=axes[1]) 

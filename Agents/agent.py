@@ -21,7 +21,6 @@ InvertedPendulumBulletEnv-v0
 InvertedPendulumSwingupBulletEnv-v0
 InvertedDoublePendulumBulletEnv-v0
 
-
 HopperBulletEnv-v0
 HalfCheetahBulletEnv-v0
 WalkerBaseBulletEnv-v0
@@ -55,7 +54,7 @@ def test_agent(agent_step):
 
         for resample_step in range(1, NUM_RESAMPLES + 1):
             # Set both environments to the same resampled values
-            clac_env.env_method("randomize", 1)  # Extreme Randomization
+            clac_env.env_method("randomize")
             env_features = clac_env.env_method("get_features")[0]
             sac_env.env_method("set_features", env_features) 
 
@@ -95,13 +94,13 @@ def mp_handler():
 if __name__ == '__main__':
     
     """ GLOBAL VARIABLES """
-    COEFS = [0.3] 
+    COEFS = [0.5, 1.0] 
     AGENTS = np.linspace(1,16,16, dtype=int)
-    NUM_RESAMPLES = 4
+    NUM_RESAMPLES = 9
 
     ENVIRONMENT_NAME = "InvertedPendulumSwingupBulletEnv-v0"
-    NUM_TRAINING_STEPS = 1000000
-    FOLDER = "InvertedPendulumSwingupBulletEnv_5M"
+    NUM_TRAINING_STEPS = 5000
+    FOLDER = "InvertedPendulumSwingupBulletEnv"
 	
     # Create target Directory if don't exist
     if not os.path.exists(FOLDER):
