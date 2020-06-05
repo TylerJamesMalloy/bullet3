@@ -24,7 +24,11 @@ from stable_baselines import SAC, CLAC
 #physicsClient = pybullet.connect(pybullet.GUI) #or p.DIRECT for non-graphical version
 #pybullet.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
 
-FOLDER = "Robots/AntBulletEnv" 
+# Robots
+# RobotsGen
+# RobotsExtremeGen
+
+FOLDER = "RobotsGen/InvertedDoublePendulumBulletEnv" 
 
 # Create target Directory if don't exist
 if not os.path.exists(FOLDER):
@@ -36,22 +40,22 @@ if not os.path.exists(FOLDER + "/results"):
 if not os.path.exists(FOLDER + "/features"):
     os.mkdir(FOLDER + "/features")
 
-NUM_RESAMPLES = 0
-NUM_TRAINING_STEPS = 1000000
-ENVIRONMENT_NAME = "AntBulletEnv-v0"
+NUM_RESAMPLES = 100
+NUM_TRAINING_STEPS = 1000
+ENVIRONMENT_NAME = "InvertedDoublePendulumBulletEnv-v0"
 
-RANDOMIZATION_LEVEL = "None"
+#RANDOMIZATION_LEVEL = "None"
 #RANDOMIZATION_LEVEL = "Test" 
-#RANDOMIZATION_LEVEL = "Normal" 
+RANDOMIZATION_LEVEL = "Normal" 
 #RANDOMIZATION_LEVEL = "Extreme"
-CLAC_COEFS = [0.025]  
-SAC_COEFS = [0.04]
+CLAC_COEFS = [2.0]  
+SAC_COEFS = [2.0]
 
 
 def test_agent(agent_step):
     for coef_index in range(len(CLAC_COEFS)):
         mut_coef = CLAC_COEFS[coef_index]
-        #ent_coef = SAC_COEFS[coef_index]
+        ent_coef = SAC_COEFS[coef_index]
 
         if(agent_step == 1):
             print(mut_coef,  "  ",  ent_coef, "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER)
@@ -70,7 +74,7 @@ def test_agent(agent_step):
         mirl_env = gym.make(ENVIRONMENT_NAME)
         mirl_env = DummyVecEnv([lambda: mirl_env])
 
-        mirl_model = CLAC(CLAC_MlpPolicy, mirl_env, mut_inf_coef=mut_coef, coef_schedule=3.3e-3, verbose=1)
+        mirl_model = CLAC(CLAC_MlpPolicy, mirl_env, mut_inf_coef=mut_coef, coef_schedule=3.3e-4, verbose=1)
 
         (clac_model, learning_results) = clac_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
         learning_results['AgentID'] = agent_step
@@ -79,7 +83,6 @@ def test_agent(agent_step):
         (sac_model, learning_results) = sac_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
         learning_results['AgentID'] = agent_step
         learning_results.to_pickle(FOLDER +  "/results/SAC_"+ str(ent_coef).replace(".", "p") + "_" + str(agent_step) + "_0.pkl")
-
 
         (mirl_model, learning_results) = mirl_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
         learning_results['AgentID'] = agent_step
@@ -99,13 +102,14 @@ def test_agent(agent_step):
 
             if(agent_step == 1):
                 print(mut_coef,  "  ",  ent_coef, "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER, " resample step ", resample_step)
+                #print(mut_coef,  "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER, " resample step ", resample_step)
             
             env_features = clac_env.env_method("get_features")[0]
             sac_env.env_method("set_features", env_features) 
             mirl_env.env_method("set_features", env_features) 
 
-            #if(agent_step == 0):
-            #    print(env_features)
+            if(agent_step == 1):
+                print(env_features)
 
             Power = env_features[0]
             Density = env_features[1]
@@ -113,7 +117,6 @@ def test_agent(agent_step):
             Gravity = env_features[3]
 
             d = {"Mut Coefficient":  mut_coef, "Ent Coefficient":  ent_coef, "Resample Step":resample_step, "Power": Power, "Density": Density, "Friction": Friction, "Gravity": Gravity}
-            #d = {"Mut Coefficient":  mut_coef, "Resample Step":resample_step, "Power": Power, "Density": Density, "Friction": Friction, "Gravity": Gravity}
             features = features.append(d, ignore_index = True)
 
             (clac_model, learning_results) = clac_model.learn(total_timesteps=NUM_TRAINING_STEPS, reset_num_timesteps=False,  log_interval=1000)
@@ -128,8 +131,8 @@ def test_agent(agent_step):
         
         clac_model.save(FOLDER +  "/models/CLAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_0")
         sac_model.save(FOLDER + "/models/SAC_" + str(ent_coef).replace(".", "p") + "_" + str(agent_step) + "_0")
-        mirl_model.save(FOLDER + "/models/MIRL_" + str(ent_coef).replace(".", "p") + "_" + str(agent_step) + "_0")
-        #features.to_pickle(FOLDER +  "/features/features_" + str(agent_step) + "_" + str(mut_coef)  + "_" + str(ent_coef) + ".pkl")
+        mirl_model.save(FOLDER + "/models/MIRL_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_0")
+        features.to_pickle(FOLDER +  "/features/features_" + str(agent_step) + "_" + str(mut_coef)  + "_" + str(ent_coef) + ".pkl")
 
         #print(features)
 
@@ -143,7 +146,7 @@ def test_agent(agent_step):
         del mirl_env
 
 def main():
-    Agents = [11,12,13,14,15,16, 17, 18, 19, 20] 
+    Agents = [17, 18, 19, 20, 21, 22, 23, 24]
     print("Initializng workers: ", Agents)
     original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
     pool = multiprocessing.Pool(processes=len(Agents))

@@ -16,6 +16,13 @@ class WalkerBaseBulletEnv(MJCFBaseBulletEnv):
     self.walk_target_y = 0
     self.stateId = -1
 
+    self.ForcePower = self.robot.power
+    self.OriginalForcePower = self.robot.power
+    self.TorsoDensity = 1
+    self.OriginalTorsoDensity = None 
+    self.JointFriction = 1
+    self.Gravity = 9.8
+
   def create_single_player_scene(self, bullet_client):
     self.stadium_scene = SinglePlayerStadiumScene(bullet_client,
                                                   gravity=9.8,
@@ -41,6 +48,100 @@ class WalkerBaseBulletEnv(MJCFBaseBulletEnv):
       #print("saving state self.stateId:",self.stateId)
 
     return r
+  
+  def randomize(self, randomization_level):
+
+    part = self.robot.parts['torso']
+    bodyIndex = part.bodyIndex
+    bodyUniqueId = part.bodies[bodyIndex]
+    numJoints = self._p.getNumJoints(bodyIndex)
+    partIndex = part.bodyPartIndex
+    info = self._p.getDynamicsInfo(part.bodies[bodyIndex], partIndex)
+    
+    if(self.OriginalTorsoDensity is None):
+      self.OriginalTorsoDensity = info[0]
+      if(self.OriginalTorsoDensity == 0):
+        self.OriginalTorsoDensity = 1
+    #print("self.OriginalTorsoDensity: ", self.OriginalTorsoDensity)
+
+    if(randomization_level == 0):
+      JointFriction = np.random.uniform(0.5 * 0.95, 0.5 * 1.05)  # Initially 0.5 in Walker2D
+      TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * 0.95, self.OriginalTorsoDensity * 1.05)     # Should be 1 initially
+      ForcePower = np.random.uniform(self.OriginalForcePower * 0.95, self.OriginalForcePower * 1.05)    # Initially 0.4 in Walker2D
+      Gravity = np.random.uniform(9.8 * 0.95, 9.8 * 1.05)
+
+      print(JointFriction, TorsoDensity, ForcePower, Gravity)
+      self.set_features([ForcePower, TorsoDensity, JointFriction, Gravity])
+      #print("RANDOMIZE WAS CALLED IN ROBOT LOCOMOTION ENV")
+    
+    elif(randomization_level == 1):
+      if(np.random.uniform(0,1) > 0.5):
+        JointFriction = np.random.uniform(0.5 * 0.8, 0.5 * 0.9)
+      else:
+        JointFriction = np.random.uniform(0.5 * 1.1, 0.5 * 1.2)
+      
+      if(np.random.uniform(0,1) > 0.5):
+        TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * 0.8, self.OriginalTorsoDensity * 0.9)
+      else:
+        TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * 1.1, self.OriginalTorsoDensity * 1.2)
+      
+      if(np.random.uniform(0,1) > 0.5):
+        ForcePower = np.random.uniform(self.OriginalForcePower * 0.8, self.OriginalForcePower * 0.9)
+      else:
+        ForcePower = np.random.uniform(self.OriginalForcePower * 1.01, self.OriginalForcePower * 1.2)
+      
+      if(np.random.uniform(0,1) > 0.5):
+        Gravity = np.random.uniform(9.8 * 0.8, 9.8 * 0.9)
+      else:
+        Gravity = np.random.uniform(9.8 * 1.1, 9.8 * 1.2)
+
+      print(JointFriction, TorsoDensity, ForcePower, Gravity)
+
+      self.set_features([ForcePower, TorsoDensity, JointFriction, Gravity])
+      #print("EXTREME RANDOMIZE WAS CALLED IN ROBOT LOCOMOTION ENV")
+    else:
+      print("ERROR: UNKNOWN RANDOMIZATION LEVEL")
+      assert(False)
+
+  def get_features(self):
+    return [self.ForcePower, self.TorsoDensity, self.JointFriction, self.Gravity]
+  
+  def set_features(self, features):
+    self.ForcePower = features[0]
+    self.TorsoDensity = features[1] 
+    self.JointFriction = features[2]
+    self.Gravity = features[3]
+
+    self._p.setGravity(0, 0, -self.Gravity)
+
+    for j in self.ordered_joints:
+      bodyIndex = j.bodyIndex
+      bodyUniqueId = j.bodies[bodyIndex]
+      partIndex = 0 # what is the joint part index?
+      info = self._p.getDynamicsInfo(j.bodies[bodyIndex], partIndex)
+      #print("Old Joint info: ", info) 
+      self._p.changeDynamics(j.bodies[bodyIndex], partIndex, lateralFriction=self.JointFriction) #, spinningFriction=self.JointFriction, rollingFriction=self.JointFriction)
+      info = self._p.getDynamicsInfo(j.bodies[bodyIndex], partIndex)
+      #print("New Joint Friction", self.JointFriction)
+      #print("New Joint info: ", info) 
+      
+    part = self.robot.parts['torso']
+    bodyIndex = part.bodyIndex
+    bodyUniqueId = part.bodies[bodyIndex]
+    numJoints = self._p.getNumJoints(bodyIndex)
+    partIndex = part.bodyPartIndex
+    info = self._p.getDynamicsInfo(part.bodies[bodyIndex], partIndex)
+    
+    if(self.OriginalTorsoDensity is None):
+      self.OriginalTorsoDensity = info[0]
+    #print("self.OriginalTorsoDensity: ", self.OriginalTorsoDensity)
+
+    #print("old torso info: ", info)
+    self._p.changeDynamics(part.bodies[bodyIndex], partIndex, mass=self.TorsoDensity)
+    info = self._p.getDynamicsInfo(part.bodies[bodyIndex], partIndex)
+    #print("new torso info: ", info)
+
+    self.robot.power = self.ForcePower
 
   def _isDone(self):
     return self._alive < 0
