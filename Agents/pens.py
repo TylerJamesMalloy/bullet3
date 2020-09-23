@@ -28,7 +28,7 @@ from stable_baselines import SAC, CLAC
 # RobotsGen
 # RobotsExtremeGen
 
-FOLDER = "RobotsGen/InvertedDoublePendulumBulletEnv" 
+FOLDER = "RobotsExtremeGen/InvertedDoublePendulumBulletEnv_v2" 
 
 # Create target Directory if don't exist
 if not os.path.exists(FOLDER):
@@ -41,13 +41,13 @@ if not os.path.exists(FOLDER + "/features"):
     os.mkdir(FOLDER + "/features")
 
 NUM_RESAMPLES = 100
-NUM_TRAINING_STEPS = 1000
+NUM_TRAINING_STEPS = 10000
 ENVIRONMENT_NAME = "InvertedDoublePendulumBulletEnv-v0"
 
 #RANDOMIZATION_LEVEL = "None"
 #RANDOMIZATION_LEVEL = "Test" 
-RANDOMIZATION_LEVEL = "Normal" 
-#RANDOMIZATION_LEVEL = "Extreme"
+#RANDOMIZATION_LEVEL = "Normal" 
+RANDOMIZATION_LEVEL = "Extreme"
 CLAC_COEFS = [2.0]  
 SAC_COEFS = [2.0]
 
@@ -146,7 +146,7 @@ def test_agent(agent_step):
         del mirl_env
 
 def main():
-    Agents = [17, 18, 19, 20, 21, 22, 23, 24]
+    Agents = [1,2,3,4,5,6,7,8]
     print("Initializng workers: ", Agents)
     original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
     pool = multiprocessing.Pool(processes=len(Agents))

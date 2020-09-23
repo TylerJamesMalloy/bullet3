@@ -14,8 +14,8 @@ nchain_filenames = [    "Robots/AntBulletEnv",
                         "RobotsGen/AntBulletEnv", 
                         "RobotsExtremeGen/AntBulletEnv",
                         "Robots/InvertedDoublePendulumBulletEnv-v0",
-                        "RobotsGen/InvertedDoublePendulumBulletEnv-v0", 
-                        "RobotsExtremeGen/InvertedDoublePendulumBulletEnv-v0"
+                        "RobotsGen/InvertedDoublePendulumBulletEnv_v2", 
+                        "RobotsExtremeGen/InvertedDoublePendulumBulletEnv_v2"
                     ]
 
 NUM_RESAMPLES = 100
@@ -92,31 +92,6 @@ for index, nchain_filename in enumerate(nchain_filenames):
                 clac_data.loc[clac_data['Model'].str.contains('CLAC'), 'Model'] = 'CLAC'
 
                 All_Data = All_Data.append(clac_data, sort="full")
-    
-    mirl_tag_strings = mirl_env_strings[index]
-    for tag in mirl_tag_strings:
-        for agent_id in agents:
-            for resample_num in range(NUM_RESAMPLES):
-
-                mirl_model_name = "MIRL" + "_" + str(tag) + "_" + str(agent_id) + "_" + str(resample_num) 
-                mirl_model_file = nchain_filename + "/results/" + mirl_model_name + ".pkl"
-
-                if(not path.exists(mirl_model_file)):
-                    continue
-
-                mirl_data = pd.read_pickle(mirl_model_file)
-                
-                if(mirl_data.empty):
-                    continue
-
-                #clac_data = clac_data.iloc[-1:]
-                mirl_data["Resample"] = resample_num
-                mirl_data["Resample"] = math.ceil(resample_num / 2.) * 2  # resample_num
-                mirl_data["Environment"] = nchain_filename
-                mirl_data["Timestep"] = mirl_data["Timestep"].astype(float).round(ROUNDING_VALUE)
-                mirl_data.loc[mirl_data['Model'].str.contains('CLAC'), 'Model'] = 'MIRL'
-
-                All_Data = All_Data.append(mirl_data, sort="full")
 
     sac_tag_strings = sac_env_strings[index]
     for tag in sac_tag_strings:
@@ -143,6 +118,31 @@ for index, nchain_filename in enumerate(nchain_filenames):
                 
 
                 All_Data = All_Data.append(sac_data, sort="full")
+    
+    mirl_tag_strings = mirl_env_strings[index]
+    for tag in mirl_tag_strings:
+        for agent_id in agents:
+            for resample_num in range(NUM_RESAMPLES):
+
+                mirl_model_name = "MIRL" + "_" + str(tag) + "_" + str(agent_id) + "_" + str(resample_num) 
+                mirl_model_file = nchain_filename + "/results/" + mirl_model_name + ".pkl"
+
+                if(not path.exists(mirl_model_file)):
+                    continue
+
+                mirl_data = pd.read_pickle(mirl_model_file)
+                
+                if(mirl_data.empty):
+                    continue
+
+                #clac_data = clac_data.iloc[-1:]
+                mirl_data["Resample"] = resample_num
+                mirl_data["Resample"] = math.ceil(resample_num / 2.) * 2  # resample_num
+                mirl_data["Environment"] = nchain_filename
+                mirl_data["Timestep"] = mirl_data["Timestep"].astype(float).round(ROUNDING_VALUE)
+                mirl_data.loc[mirl_data['Model'].str.contains('CLAC'), 'Model'] = 'MIRL'
+
+                All_Data = All_Data.append(mirl_data, sort="full")
 
 #All_Data = All_Data.loc[All_Data["Timestep"] < 50000]
 
@@ -216,7 +216,6 @@ Ant_axes[2].get_legend().remove()
 
 #fig.text(0.01, 0.5, 'Average Reward', va='center', rotation='vertical' , fontsize=48)
 
-plt.subplots_adjust(wspace=0.1, hspace=0.25)
-
+plt.subplots_adjust(wspace=0.05, hspace=0.2)
 fig.suptitle('Robot Generalization Results', fontsize=64)
 plt.show()
