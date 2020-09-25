@@ -31,3 +31,6 @@ build3/
 
 # VirtualEnv
 bulletEnv/
+
+# Results and models
+Agents/Results/*
