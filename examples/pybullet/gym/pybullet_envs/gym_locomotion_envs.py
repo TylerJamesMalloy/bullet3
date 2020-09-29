@@ -67,11 +67,16 @@ class WalkerBaseBulletEnv(MJCFBaseBulletEnv):
         self.OriginalTorsoDensity = 1
     #print("self.OriginalTorsoDensity: ", self.OriginalTorsoDensity)
 
+    low_window    = 0.9
+    high_window   = 1.1
+    lower_window  = 0.75
+    higher_window = 1.25
+
     if(randomization_level == 1):
-      JointFriction = np.random.uniform(0.5 * 0.95, 0.5 * 1.05)                                             # Initially 0.5 in Walker2D
-      TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * 0.95, self.OriginalTorsoDensity * 1.05)  # Should be 1 initially
-      ForcePower = np.random.uniform(self.OriginalForcePower * 0.95, self.OriginalForcePower * 1.05)        # Initially 0.4 in Walker2D
-      Gravity = np.random.uniform(9.8 * 0.95, 9.8 * 1.05)
+      JointFriction = np.random.uniform(0.5 * low_window, 0.5 * high_window)                                             # Initially 0.5 in Walker2D
+      TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * low_window, self.OriginalTorsoDensity * high_window)  # Should be 1 initially
+      ForcePower = np.random.uniform(self.OriginalForcePower * low_window, self.OriginalForcePower * high_window)        # Initially 0.4 in Walker2D
+      Gravity = np.random.uniform(9.8 * low_window, 9.8 * high_window)
 
       #print(JointFriction, TorsoDensity, ForcePower, Gravity)
       self.set_features([ForcePower, TorsoDensity, JointFriction, Gravity])
@@ -79,24 +84,24 @@ class WalkerBaseBulletEnv(MJCFBaseBulletEnv):
     
     elif(randomization_level == 2):
       if(np.random.uniform(0,1) > 0.5):
-        JointFriction = np.random.uniform(0.5 * 0.8, 0.5 * 0.9)
+        JointFriction = np.random.uniform(0.5 * lower_window, 0.5 * low_window)
       else:
-        JointFriction = np.random.uniform(0.5 * 1.1, 0.5 * 1.2)
+        JointFriction = np.random.uniform(0.5 * higher_window, 0.5 * high_window)
       
       if(np.random.uniform(0,1) > 0.5):
-        TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * 0.8, self.OriginalTorsoDensity * 0.9)
+        TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * lower_window, self.OriginalTorsoDensity * low_window)
       else:
-        TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * 1.1, self.OriginalTorsoDensity * 1.2)
+        TorsoDensity = np.random.uniform(self.OriginalTorsoDensity * higher_window, self.OriginalTorsoDensity * high_window)
       
       if(np.random.uniform(0,1) > 0.5):
-        ForcePower = np.random.uniform(self.OriginalForcePower * 0.8, self.OriginalForcePower * 0.9)
+        ForcePower = np.random.uniform(self.OriginalForcePower * lower_window, self.OriginalForcePower * low_window)
       else:
-        ForcePower = np.random.uniform(self.OriginalForcePower * 1.01, self.OriginalForcePower * 1.2)
+        ForcePower = np.random.uniform(self.OriginalForcePower * higher_window, self.OriginalForcePower * high_window)
       
       if(np.random.uniform(0,1) > 0.5):
-        Gravity = np.random.uniform(9.8 * 0.8, 9.8 * 0.9)
+        Gravity = np.random.uniform(9.8 * lower_window, 9.8 * low_window)
       else:
-        Gravity = np.random.uniform(9.8 * 1.1, 9.8 * 1.2)
+        Gravity = np.random.uniform(9.8 * higher_window, 9.8 * high_window)
 
       #print(JointFriction, TorsoDensity, ForcePower, Gravity)
 

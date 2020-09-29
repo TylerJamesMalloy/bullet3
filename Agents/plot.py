@@ -10,12 +10,12 @@ sns.set(style="ticks", color_codes=True, rc={"lines.linewidth": 2.5})
 sns.set(font_scale=2.5)
 
 
-nchain_filenames = [    "Results/Walker2DBulletEnv/Training",
-                        "Results/Walker2DBulletEnv/Generalization", 
-                        "Results/Walker2DBulletEnv/Extreme",
+nchain_filenames = [    "Results/AntBulletEnv/Training",
+                        "Results/AntBulletEnv/Generalization", 
+                        "Results/AntBulletEnv/Extreme",
                     ]
 
-NUM_RESAMPLES = 100
+NUM_RESAMPLES = 12
 
 coefs = [0.01]
 clac_tag_strings = ["0p01"]
@@ -28,8 +28,11 @@ ExtremeData = pd.DataFrame()
 
 ROUNDING_VALUE = -3
 
-agents = [1,2,3,4] 
+agents = [1,2,3,4,5,6,7,8] 
 print(agents)
+
+#clac_data = pd.read_pickle("Results/AntBulletEnv/Training/results/CLAC_0p01_1_0.pkl")
+#print(clac_data)
 
 for index, nchain_filename in enumerate(nchain_filenames):
     for tag in clac_tag_strings:
@@ -121,7 +124,7 @@ for index, nchain_filename in enumerate(nchain_filenames):
                     ExtremeData = ExtremeData.append(mirl_data, sort="full")
 
 print("Done Loading Results")
-print(ExtremeData)
+print(TrainingData)
 
 
 fig, axes = plt.subplots(1, 3 , sharey='row')
@@ -131,9 +134,11 @@ ax0 = sns.lineplot(x="Resample", y="Reward", hue="Model", legend="full", ci=99, 
 ax0 = sns.lineplot(x="Resample", y="Reward", hue="Model", legend="full", ci=99, data=ExtremeData, ax=axes[2])  
 
 
-axes[0].set_title('Training Results', fontsize=48)
-axes[1].set_title('Randomized Testing', fontsize=48)
-axes[2].set_title('Extreme Testing', fontsize=48)
+axes[0].set_title('No Randomization', fontsize=48)
+axes[1].set_title('Window Randomization', fontsize=48)
+axes[2].set_title('Disjoint Randomization', fontsize=48)
+
+axes[0].set_ylabel('Episode Reward', fontsize=48)
 
 axes[0].set_xlabel('Resample Step', fontsize=48)
 axes[1].set_xlabel('Resample Step', fontsize=48)

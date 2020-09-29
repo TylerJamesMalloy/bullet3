@@ -19,17 +19,17 @@ from stable_baselines import SAC, CLAC
 
 #     ENVIRONMENT_NAMES Walker2DBulletEnv-v0, Robots/AntBulletEnv-v0  , HopperBulletEnv-v0 , HumanoidBulletEnv-v0, HalfCheetahBulletEnv-v0
 
-FOLDER = "Results/Walker2DBulletEnv" 
+FOLDER = "Results/AntBulletEnv" 
 
 NUM_RESAMPLES = 100
-NUM_TRAINING_STEPS = 10000
+NUM_TRAINING_STEPS = 100000
 NUM_TESTING_STEPS = 10000
-ENVIRONMENT_NAME = "Walker2DBulletEnv-v0"
+ENVIRONMENT_NAME = "AntBulletEnv-v0"
 
-CLAC_COEFS = [0.01]  
-SAC_COEFS = [0.01]
+CLAC_COEFS  = [0.01, 0.025, 0.05]  
+SAC_COEFS   = [0.01, 0.025, 0.05]
 
-def eval_model(model, env, model_name, coef, testing_timesteps, training_timestep, randomization):
+def eval_model(model, env, model_name, coef, testing_timesteps, training_timestep, agent_step, resample_step, randomization):
     obs = env.reset()
     states = None
     reward_sum = 0
@@ -46,7 +46,7 @@ def eval_model(model, env, model_name, coef, testing_timesteps, training_timeste
         reward_sum += rewards[0]
 
         if(dones[0]):
-            d = {"Model": model_name, "Reward": reward_sum, "Timestep": training_timestep, "Coef": coef, "Randomization": randomization}
+            d = {"Model": model_name, "Reward": reward_sum, "Timestep": training_timestep, "Coef": coef, "Randomization": randomization, "AgentID": agent_step, "Resample": resample_step}
             Data = Data.append(d, ignore_index=True)
             all_rewards.append(reward_sum)
             reward_sum = 0
@@ -86,60 +86,51 @@ def test_agent(agent_step):
             features = pd.DataFrame()
 
             (clac_model, learning_results) = clac_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
-            learning_results['AgentID'] = agent_step
-            learning_results.to_pickle(FOLDER + "/Training/results/CLAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
-
             (sac_model, learning_results) = sac_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
-            learning_results['AgentID'] = agent_step
-            learning_results.to_pickle(FOLDER +  "/Training/results/SAC_"+ str(ent_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
-
             (mirl_model, learning_results) = mirl_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
-            learning_results['AgentID'] = agent_step
-            learning_results.to_pickle(FOLDER + "/Training/results/MIRL_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
             # Save models 
-            clac_model.save()
-            sac_model.save()
-            mirl_model.save()
+            clac_model.save(FOLDER + "/Training/models/CLAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step))
+            sac_model.save(FOLDER + "/Training/models/CLAC_" + str(ent_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step))
+            mirl_model.save(FOLDER + "/Training/models/CLAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step))
 
             training_timestep += NUM_TRAINING_STEPS
 
             # Test Normal 
-            eval_results = eval_model(clac_model, clac_env, "CLAC", mut_coef, NUM_TESTING_STEPS, training_timestep, 0)
-            eval_results['AgentID'] = agent_step
+            eval_results = eval_model(clac_model, clac_env, "CLAC", mut_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 0)
             eval_results.to_pickle(FOLDER + "/Training/results/CLAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
-            eval_results = eval_model(sac_model, sac_env, "SAC", ent_coef, NUM_TESTING_STEPS, training_timestep, 0)
+            eval_results = eval_model(sac_model, sac_env, "SAC", ent_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 0)
             eval_results['AgentID'] = agent_step
-            eval_results.to_pickle(FOLDER + "/Training/results/SAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
+            eval_results.to_pickle(FOLDER + "/Training/results/SAC_" + str(ent_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
-            eval_results = eval_model(mirl_model, mirl_env, "MIRL", mut_coef, NUM_TESTING_STEPS, training_timestep, 0)
+            eval_results = eval_model(mirl_model, mirl_env, "MIRL", mut_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 0)
             eval_results['AgentID'] = agent_step
             eval_results.to_pickle(FOLDER + "/Training/results/MIRL_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
             # Test generalization 
-            eval_results = eval_model(clac_model, clac_env, "CLAC", mut_coef, NUM_TESTING_STEPS, training_timestep, 1)
+            eval_results = eval_model(clac_model, clac_env, "CLAC", mut_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 1)
             eval_results['AgentID'] = agent_step
             eval_results.to_pickle(FOLDER + "/Generalization/results/CLAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
-            eval_results = eval_model(sac_model, sac_env, "SAC", ent_coef, NUM_TESTING_STEPS, training_timestep, 1)
+            eval_results = eval_model(sac_model, sac_env, "SAC", ent_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 1)
             eval_results['AgentID'] = agent_step
-            eval_results.to_pickle(FOLDER + "/Generalization/results/SAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
+            eval_results.to_pickle(FOLDER + "/Generalization/results/SAC_" + str(ent_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
-            eval_results = eval_model(mirl_model, mirl_env, "MIRL", mut_coef, NUM_TESTING_STEPS, training_timestep, 1)
+            eval_results = eval_model(mirl_model, mirl_env, "MIRL", mut_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 1)
             eval_results['AgentID'] = agent_step
             eval_results.to_pickle(FOLDER + "/Generalization/results/MIRL_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
             # Test generalization Extreme
-            eval_results = eval_model(clac_model, clac_env, "CLAC", mut_coef, NUM_TESTING_STEPS, training_timestep, 2)
+            eval_results = eval_model(clac_model, clac_env, "CLAC", mut_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 2)
             eval_results['AgentID'] = agent_step
             eval_results.to_pickle(FOLDER + "/Extreme/results/CLAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
-            eval_results = eval_model(sac_model, sac_env, "SAC", ent_coef, NUM_TESTING_STEPS, training_timestep, 2)
+            eval_results = eval_model(sac_model, sac_env, "SAC", ent_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 2)
             eval_results['AgentID'] = agent_step
-            eval_results.to_pickle(FOLDER + "/Extreme/results/SAC_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
+            eval_results.to_pickle(FOLDER + "/Extreme/results/SAC_" + str(ent_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
-            eval_results = eval_model(mirl_model, mirl_env, "MIRL", mut_coef, NUM_TESTING_STEPS, training_timestep, 2)
+            eval_results = eval_model(mirl_model, mirl_env, "MIRL", mut_coef, NUM_TESTING_STEPS, training_timestep, agent_step, resample_step, 2)
             eval_results['AgentID'] = agent_step
             eval_results.to_pickle(FOLDER + "/Extreme/results/MIRL_" + str(mut_coef).replace(".", "p") + "_" + str(agent_step) + "_" + str(resample_step) + ".pkl")
 
@@ -161,7 +152,7 @@ def test_agent(agent_step):
     print("Tested Agent Time: ", difference)
 
 def main():
-    Agents = [1, 2, 3, 4] 
+    Agents = [1, 2, 3, 4, 5, 6, 7, 8] 
     print("Initializng workers: ", Agents)
     original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
     pool = multiprocessing.Pool(processes=len(Agents))
