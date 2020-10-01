@@ -1,4 +1,4 @@
-# Branch of Bullet Physics SDK for NeurIPS submission 
+# Branch of Bullet Physics SDK 
 
 Please see the readme in the included anonymized stable-baseline branch for instructions on running experiments. 
 
