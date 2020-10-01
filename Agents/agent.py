@@ -19,15 +19,24 @@ from stable_baselines import SAC, CLAC
 
 #     ENVIRONMENT_NAMES Walker2DBulletEnv-v0, Robots/AntBulletEnv-v0  , HopperBulletEnv-v0 , HumanoidBulletEnv-v0, HalfCheetahBulletEnv-v0
 
-FOLDER = "Results/AntBulletEnv" 
+FOLDER = "Results/InvertedDoublePendulumBulletEnv" 
 
 NUM_RESAMPLES = 100
-NUM_TRAINING_STEPS = 100000
-NUM_TESTING_STEPS = 10000
-ENVIRONMENT_NAME = "AntBulletEnv-v0"
+NUM_TRAINING_STEPS = 1000
+NUM_TESTING_STEPS = 1000
+ENVIRONMENT_NAME = "InvertedDoublePendulumBulletEnv-v0"
 
-CLAC_COEFS  = [0.01, 0.025, 0.05]  
-SAC_COEFS   = [0.01, 0.025, 0.05]
+if(not os.path.exists(FOLDER + '/Extreme/results')):
+    os.mkdir(FOLDER + '/Extreme/results')
+if(not os.path.exists(FOLDER + '/Generalization/results')):
+    os.mkdir(FOLDER + '/Generalization/results')
+if(not os.path.exists(FOLDER + '/Training/results')):
+    os.mkdir(FOLDER + '/Training/results')
+if(not os.path.exists(FOLDER + '/Training/models')):
+    os.mkdir(FOLDER + '/Training/models')
+
+CLAC_COEFS  = [2.0]  
+SAC_COEFS   = [2.0]
 
 def eval_model(model, env, model_name, coef, testing_timesteps, training_timestep, agent_step, resample_step, randomization):
     obs = env.reset()
@@ -65,9 +74,6 @@ def test_agent(agent_step):
         ent_coef = SAC_COEFS[coef_index]
         training_timestep = 0
 
-        if(agent_step == 1):
-            print(mut_coef,  "  ",  ent_coef, "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER)
-
         clac_env = gym.make(ENVIRONMENT_NAME)
         clac_env = DummyVecEnv([lambda: clac_env])
         clac_model = CLAC(CLAC_MlpPolicy, clac_env, mut_inf_coef=mut_coef, verbose=1)
@@ -84,6 +90,9 @@ def test_agent(agent_step):
         
         for resample_step in range(0, NUM_RESAMPLES):
             features = pd.DataFrame()
+
+            if(agent_step == 1):
+            print(mut_coef,  "  ",  ent_coef, "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER, " ", resample_step)
 
             (clac_model, learning_results) = clac_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
             (sac_model, learning_results) = sac_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
@@ -151,6 +160,9 @@ def test_agent(agent_step):
     difference = int(later - now)
     print("Tested Agent Time: ", difference)
 
+
+test_agent(1)
+assert(False)
 def main():
     Agents = [1, 2, 3, 4, 5, 6, 7, 8] 
     print("Initializng workers: ", Agents)

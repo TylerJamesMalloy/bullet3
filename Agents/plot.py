@@ -15,9 +15,17 @@ nchain_filenames = [    "Results/AntBulletEnv/Training",
                         "Results/AntBulletEnv/Extreme",
                     ]
 
-NUM_RESAMPLES = 12
+"""nchain_filenames = [    "Results/InvertedDoublePendulumBulletEnv/Training",
+                        "Results/InvertedDoublePendulumBulletEnv/Generalization", 
+                        "Results/InvertedDoublePendulumBulletEnv/Extreme",
+                    ]"""
+
+NUM_RESAMPLES = 100
 
 coefs = [0.01]
+#clac_tag_strings = ["2p0"]
+#sac_tag_strings = ["2p0"]
+#mirl_tag_strings = ["2p0"]
 clac_tag_strings = ["0p01"]
 sac_tag_strings = ["0p01"]
 mirl_tag_strings = ["0p01"]
@@ -28,7 +36,7 @@ ExtremeData = pd.DataFrame()
 
 ROUNDING_VALUE = -3
 
-agents = [1,2,3,4,5,6,7,8] 
+agents = [1,2,3,5,6,7,8] 
 print(agents)
 
 #clac_data = pd.read_pickle("Results/AntBulletEnv/Training/results/CLAC_0p01_1_0.pkl")
@@ -38,6 +46,9 @@ for index, nchain_filename in enumerate(nchain_filenames):
     for tag in clac_tag_strings:
         for agent_id in agents:
             for resample_num in range(NUM_RESAMPLES):
+
+                if(agent_id == 2 and resample_num == 21):
+                    continue
 
                 clac_model_name = "CLAC" + "_" + str(tag) + "_" + str(agent_id) + "_" + str(resample_num) 
                 clac_model_file = nchain_filename + "/results/" + clac_model_name + ".pkl"
@@ -123,26 +134,28 @@ for index, nchain_filename in enumerate(nchain_filenames):
                 else:
                     ExtremeData = ExtremeData.append(mirl_data, sort="full")
 
-print("Done Loading Results")
+#print("Done Loading Results")
+#print("CLAC Training Max: ", TrainingData.loc[TrainingData['Model'] == "CLAC"]["Reward"].max())
+#print("CLAC Training Max: ", TrainingData.loc[TrainingData['Model'] == "CLAC"]["Reward"].max())
+#print("CLAC Training Max: ", TrainingData.loc[TrainingData['Model'] == "CLAC"]["Reward"].max())
+#assert(False)
+
 print(TrainingData)
 
-
-fig, axes = plt.subplots(1, 3 , sharey='row')
+fig, axes = plt.subplots(2, 1, sharey='col')
 
 ax0 = sns.lineplot(x="Resample", y="Reward", hue="Model", legend="full", ci=99, data=TrainingData, ax=axes[0])
-ax0 = sns.lineplot(x="Resample", y="Reward", hue="Model", legend="full", ci=99, data=GenData, ax=axes[1]) 
-ax0 = sns.lineplot(x="Resample", y="Reward", hue="Model", legend="full", ci=99, data=ExtremeData, ax=axes[2])  
+ax0 = sns.lineplot(x="Resample", y="Reward", hue="Model", legend="full", ci=99, data=ExtremeData, ax=axes[1]) 
 
 
-axes[0].set_title('No Randomization', fontsize=48)
-axes[1].set_title('Window Randomization', fontsize=48)
-axes[2].set_title('Disjoint Randomization', fontsize=48)
+axes[0].set_title('Ant Walker', fontsize=48)
+axes[1].set_title('', fontsize=48)
 
-axes[0].set_ylabel('Episode Reward', fontsize=48)
+axes[0].set_ylabel('Training \n Reward', fontsize=32)
+axes[1].set_ylabel('Testing  \n Reward', fontsize=32)
 
-axes[0].set_xlabel('Resample Step', fontsize=48)
-axes[1].set_xlabel('Resample Step', fontsize=48)
-axes[2].set_xlabel('Resample Step', fontsize=48)
+axes[0].set_xlabel('', fontsize=48)
+axes[1].set_xlabel('Timestep 10M', fontsize=48)
 
 plt.subplots_adjust(wspace=0.05, hspace=0.2)
 fig.suptitle('Robot Generalization Results', fontsize=64)

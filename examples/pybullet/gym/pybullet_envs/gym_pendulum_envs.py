@@ -69,7 +69,7 @@ class InvertedPendulumBulletEnv(MJCFBaseBulletEnv):
     self.gravity = self.np_random.normal(loc=9.8, scale=1)      # Originally 9.8 
     self.poleMass = self.np_random.normal(loc=5.0, scale=1)     # Originally 5 
 
-    print("RANDOMIZING: torqueForce: ", self.torqueForce, "gravity: ", self.gravity, "RANDOMIZING: poleMass: ", self.poleMass)
+    #print("RANDOMIZING: torqueForce: ", self.torqueForce, "gravity: ", self.gravity, "RANDOMIZING: poleMass: ", self.poleMass)
 
     # OLD RANDOMIZATION METHOD
 
@@ -158,9 +158,20 @@ class InvertedDoublePendulumBulletEnv(MJCFBaseBulletEnv):
     self.gravity = 9.8
     self.pole1Mass = 5
     self.pole2Mass = 5
+
+    self.OGtorqueForce = 200 # In double pendulum the initial torqueForce is 200
+    self.OGgravity = 9.8
+    self.OGpole1Mass = 5
+    self.OGpole2Mass = 5
   
   def get_features(self):
     return self.torqueForce, self.gravity, self.pole1Mass, self.pole2Mass
+  
+  def reset_features(self):
+    self.torqueForce = self.OGtorqueForce
+    self.gravity = self.OGgravity
+    self.pole1Mass = self.OGpole1Mass
+    self.pole2Mass = self.OGpole2Mass
   
   def set_features(self, features = [200, 9.8, 5, 5]):
     self.reset()
@@ -190,44 +201,42 @@ class InvertedDoublePendulumBulletEnv(MJCFBaseBulletEnv):
   def randomize(self, level=0):
     self.reset()
 
-    self.torqueForce = self.np_random.normal(loc=200, scale=10)   # Originally 200 
-    self.gravity = self.np_random.normal(loc=9.8, scale=1)        # Originally 9.8 
-    self.pole1Mass = self.np_random.normal(loc=5.0, scale=1)      # Originally 5 
-    self.pole2Mass = self.np_random.normal(loc=5.0, scale=1)      # Originally 5 
+    low_window    = 0.9
+    high_window   = 1.1
+    lower_window  = 0.75
+    higher_window = 1.25
 
-    ### OLD RANDOMIZATION METHOD
+    np.random.seed()
 
-    """
     if(level == 0):
-      self.torqueForce = self.np_random.uniform(low=180, high=220)
-      self.gravity = self.np_random.uniform(low=8.82, high=10.78)
-      self.pole1Mass = self.np_random.uniform(low=4.5, high=5.5)
-      self.pole2Mass = self.np_random.uniform(low=4.5, high=5.5)
-    elif(level == 1):
+      return
+    if(level == 1):
+      self.torqueForce = self.np_random.uniform(low=self.OGtorqueForce * low_window, high=self.OGtorqueForce * high_window)
+      self.gravity = self.np_random.uniform(low=self.OGgravity * low_window, high=self.OGgravity * high_window)
+      self.pole1Mass = self.np_random.uniform(low=self.OGpole1Mass * low_window, high=self.OGpole1Mass * high_window)
+      self.pole2Mass = self.np_random.uniform(low=self.OGpole2Mass * low_window, high=self.OGpole2Mass * high_window)
+    elif(level == 2):
       if(self.np_random.uniform(low=0, high=1.0) > 0.5):
-        self.torqueForce = self.np_random.uniform(low=50, high=75)
+        self.torqueForce = self.np_random.uniform(low=self.OGtorqueForce * lower_window, high=self.OGtorqueForce * low_window)
       else:
-        self.torqueForce = self.np_random.uniform(low=125, high=150)
+        self.torqueForce = self.np_random.uniform(low=self.OGtorqueForce * high_window, high=self.OGtorqueForce * higher_window)
       
       if(self.np_random.uniform(low=0, high=1.0) > 0.5):
-        self.gravity = self.np_random.uniform(low=4.9, high=7.35)
+        self.gravity = self.np_random.uniform(low=self.OGgravity * lower_window, high=self.OGgravity * low_window)
       else:
-        self.gravity = self.np_random.uniform(low=12.25, high=14.7)
+        self.gravity = self.np_random.uniform(low=self.OGgravity * high_window, high=self.OGgravity * higher_window)
 
       if(self.np_random.uniform(low=0, high=1.0) > 0.5):
-        self.pole1Mass = self.np_random.uniform(low=2.5, high=3.75)
+        self.pole1Mass = self.np_random.uniform(low=self.OGpole1Mass * lower_window, high=self.OGpole1Mass * low_window)
       else:
-        self.pole1Mass = self.np_random.uniform(low=6.25, high=7.5)
+        self.pole1Mass = self.np_random.uniform(low=self.OGpole1Mass * high_window, high=self.OGpole1Mass * higher_window)
       
       if(self.np_random.uniform(low=0, high=1.0) > 0.5):
-        self.pole2Mass = self.np_random.uniform(low=2.5, high=3.75)
+        self.pole2Mass = self.np_random.uniform(low=self.OGpole2Mass * lower_window, high=self.OGpole2Mass * low_window)
       else:
-        self.pole2Mass = self.np_random.uniform(low=6.25, high=7.5)
-
+        self.pole2Mass = self.np_random.uniform(low=self.OGpole2Mass * high_window, high=self.OGpole2Mass * higher_window)
     else:
-      print("ERROR: Invalid randomization mode selected, only 0 or 1 are available")
-    """
-    
+      print("ERROR: Invalid randomization mode selected, only 0, 1, or 2 are available")
     #print("randomizing, torque: ", self.torqueForce  , " gravity ", self.gravity)
 
     self._p.setGravity(0, 0, -self.gravity)
