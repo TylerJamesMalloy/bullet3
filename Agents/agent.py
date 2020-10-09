@@ -21,9 +21,9 @@ from stable_baselines import SAC, CLAC
 
 FOLDER = "Results/InvertedDoublePendulumBulletEnv" 
 
-NUM_RESAMPLES = 100
-NUM_TRAINING_STEPS = 1000
-NUM_TESTING_STEPS = 1000
+NUM_RESAMPLES = 50
+NUM_TRAINING_STEPS = 100000
+NUM_TESTING_STEPS = 50000
 ENVIRONMENT_NAME = "InvertedDoublePendulumBulletEnv-v0"
 
 if(not os.path.exists(FOLDER + '/Extreme/results')):
@@ -92,7 +92,7 @@ def test_agent(agent_step):
             features = pd.DataFrame()
 
             if(agent_step == 1):
-            print(mut_coef,  "  ",  ent_coef, "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER, " ", resample_step)
+                print(mut_coef,  "  ",  ent_coef, "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER, " ", resample_step)
 
             (clac_model, learning_results) = clac_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
             (sac_model, learning_results) = sac_model.learn(total_timesteps=NUM_TRAINING_STEPS, log_interval=1000)
@@ -161,10 +161,8 @@ def test_agent(agent_step):
     print("Tested Agent Time: ", difference)
 
 
-test_agent(1)
-assert(False)
 def main():
-    Agents = [1, 2, 3, 4, 5, 6, 7, 8] 
+    Agents = [1, 2] 
     print("Initializng workers: ", Agents)
     original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
     pool = multiprocessing.Pool(processes=len(Agents))

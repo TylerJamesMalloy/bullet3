@@ -9,32 +9,22 @@ plt.style.use('fivethirtyeight')
 sns.set(style="ticks", color_codes=True, rc={"lines.linewidth": 2.5})
 sns.set(font_scale=2.5)
 
-
-nchain_filenames = [    "Results/AntBulletEnv/Training",
-                        "Results/AntBulletEnv/Generalization", 
-                        "Results/AntBulletEnv/Extreme",
+nchain_filenames = [    "OldResults/Robots/HopperBulletEnv/",
+                        "OldResults/Robots/HalfCheetahBulletEnv/", 
                     ]
 
-"""nchain_filenames = [    "Results/InvertedDoublePendulumBulletEnv/Training",
-                        "Results/InvertedDoublePendulumBulletEnv/Generalization", 
-                        "Results/InvertedDoublePendulumBulletEnv/Extreme",
-                    ]"""
-
-NUM_RESAMPLES = 100
+NUM_RESAMPLES = 1
 
 coefs = [0.01]
-#clac_tag_strings = ["2p0"]
-#sac_tag_strings = ["2p0"]
-#mirl_tag_strings = ["2p0"]
-clac_tag_strings = ["0p01"]
-sac_tag_strings = ["0p01"]
-mirl_tag_strings = ["0p01"]
+clac_tag_strings = ["0p01","0p05","0p1","0p15","0p2","0p25","0p3"]
+sac_tag_strings = ["0p01","0p05","0p1","0p15","0p2","0p25","0p3"]
+mirl_tag_strings = ["0p01","0p05","0p1","0p15","0p2","0p25","0p3"]
 
 TrainingData = pd.DataFrame()
 GenData = pd.DataFrame()
 ExtremeData = pd.DataFrame()
 
-ROUNDING_VALUE = -3
+ROUNDING_VALUE = -4
 
 agents = [1,2,3,5,6,7,8] 
 print(agents)
@@ -46,9 +36,6 @@ for index, nchain_filename in enumerate(nchain_filenames):
     for tag in clac_tag_strings:
         for agent_id in agents:
             for resample_num in range(NUM_RESAMPLES):
-
-                if(agent_id == 2 and resample_num == 21):
-                    continue
 
                 clac_model_name = "CLAC" + "_" + str(tag) + "_" + str(agent_id) + "_" + str(resample_num) 
                 clac_model_file = nchain_filename + "/results/" + clac_model_name + ".pkl"
@@ -140,22 +127,44 @@ for index, nchain_filename in enumerate(nchain_filenames):
 #print("CLAC Training Max: ", TrainingData.loc[TrainingData['Model'] == "CLAC"]["Reward"].max())
 #assert(False)
 
+All_Data = pd.DataFrame()
+All_Data = All_Data.append(TrainingData, ignore_index=True)
+All_Data = All_Data.append(GenData, ignore_index=True)
+All_Data = All_Data.append(ExtremeData, ignore_index=True)
+
+print(All_Data)
+
+#All_Data  = All_Data.loc[All_Data["Timestep"] < 100000]
+
+Hopper  = All_Data.loc[All_Data["Environment"] == nchain_filenames[0]]
+Cheetah = All_Data.loc[All_Data["Environment"] == nchain_filenames[1]]
+
+Hopper_clac = Hopper.loc[Hopper["Model"] == "CLAC"]
+Hopper_sac  = Hopper.loc[Hopper["Model"] == "SAC"]
+Hopper_mirl = Hopper.loc[Hopper["Model"] == "MIRL"]
+
+Cheetah_clac = Cheetah.loc[Cheetah["Model"] == "CLAC"]
+Cheetah_sac  = Cheetah.loc[Cheetah["Model"] == "SAC"]
+Cheetah_mirl = Cheetah.loc[Cheetah["Model"] == "MIRL"]
+
 print(TrainingData)
 
-fig, axes = plt.subplots(2, 1, sharey='col')
+fig, (ant_axes, pen_axes) = plt.subplots(2, 3, sharey='col')
 
-ax0 = sns.lineplot(x="Resample", y="Reward", hue="Model", legend="full", ci=99, data=TrainingData, ax=axes[0])
-ax0 = sns.lineplot(x="Resample", y="Reward", hue="Model", legend="full", ci=99, data=ExtremeData, ax=axes[1]) 
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=Cheetah_clac, ax=ant_axes[0])
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=Cheetah_sac, ax=ant_axes[2]) 
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=Cheetah_mirl, ax=ant_axes[1]) 
 
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=Hopper_clac, ax=pen_axes[0])
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=Hopper_sac, ax=pen_axes[2]) 
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=Hopper_mirl, ax=pen_axes[1]) 
 
-axes[0].set_title('Ant Walker', fontsize=48)
-axes[1].set_title('', fontsize=48)
+ant_axes[0].get_legend().remove()
+ant_axes[1].get_legend().remove()
 
-axes[0].set_ylabel('Training \n Reward', fontsize=32)
-axes[1].set_ylabel('Testing  \n Reward', fontsize=32)
-
-axes[0].set_xlabel('', fontsize=48)
-axes[1].set_xlabel('Timestep 10M', fontsize=48)
+pen_axes[0].get_legend().remove()
+pen_axes[1].get_legend().remove()
+pen_axes[2].get_legend().remove()
 
 plt.subplots_adjust(wspace=0.05, hspace=0.2)
 fig.suptitle('Robot Generalization Results', fontsize=64)

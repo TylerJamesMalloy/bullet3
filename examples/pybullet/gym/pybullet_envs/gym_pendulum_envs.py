@@ -201,10 +201,10 @@ class InvertedDoublePendulumBulletEnv(MJCFBaseBulletEnv):
   def randomize(self, level=0):
     self.reset()
 
-    low_window    = 0.9
-    high_window   = 1.1
-    lower_window  = 0.75
-    higher_window = 1.25
+    low_window    = 0.95
+    high_window   = 1.05
+    lower_window  = 0.9
+    higher_window = 1.15
 
     np.random.seed()
 

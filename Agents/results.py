@@ -10,22 +10,25 @@ sns.set(style="ticks", color_codes=True, rc={"lines.linewidth": 2.5})
 sns.set(font_scale=2.5)
 
 
-nchain_filenames = [    "Robots/Walker2DBulletEnv",
-                        "RobotsGen/AntBulletEnv", 
-                        "RobotsExtremeGen/AntBulletEnv",
-                        "Robots/InvertedDoublePendulumBulletEnv-v0",
-                        "RobotsGen/InvertedDoublePendulumBulletEnv_v2", 
-                        "RobotsExtremeGen/InvertedDoublePendulumBulletEnv_v2"
+nchain_filenames = [    "OldResults/Robots/AntBulletEnv",
+                        "OldResults/RobotsGen/AntBulletEnv", 
+                        "OldResults/RobotsExtremeGen/AntBulletEnv",
+                        "OldResults/Robots/InvertedDoublePendulumBulletEnv",
+                        "OldResults/RobotsGen/InvertedDoublePendulumBulletEnv", 
+                        "OldResults/RobotsExtremeGen/InvertedDoublePendulumBulletEnv"
                     ]
+
+# HalfCheetahBulletEnv
+# HopperBulletEnv
 
 NUM_RESAMPLES = 100
 
-mirl_tags = [   [ 0.15, 0.175, 0.2],
-                [],
-                [],
-                [],
-                [],
-                []]
+mirl_tags = [   [2.0],
+                [2.0],
+                [2.0],
+                [2.0],
+                [2.0],
+                [2.0]]
 mirl_env_strings = []
 for env in mirl_tags:
     env_tags = []
@@ -33,14 +36,12 @@ for env in mirl_tags:
         env_tags.append(str(tag).replace(".", "p"))
     mirl_env_strings.append(env_tags)
 
-
-
-clac_tags = [   [0.01, 0.025],
-                [],
-                [],
-                [],
-                [],
-                []]
+clac_tags = [   [0.025],
+                [0.025],
+                [0.025],
+                [2.0],
+                [2.0],
+                [2.0]]
 clac_env_strings = []
 for env in clac_tags:
     env_tags = []
@@ -48,12 +49,13 @@ for env in clac_tags:
         env_tags.append(str(tag).replace(".", "p"))
     clac_env_strings.append(env_tags)
 
-sac_tags = [    [0.01, 0.025, 0.05, 0.1],
-                [],
-                [],
-                [],
-                [],
-                []]
+sac_tags = [    [0.04],
+                [0.04],
+                [0.04],
+                [2.0],
+                [2.0],
+                [2.0]]
+
 sac_env_strings = []
 for env in sac_tags:
     env_tags = []
@@ -64,7 +66,7 @@ for env in sac_tags:
 All_Data = pd.DataFrame()
 ROUNDING_VALUE = -3
 
-agents = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13,14,15,16] 
+agents = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13,14,15,16,17,18,19,20] 
 print(agents)
 
 for index, nchain_filename in enumerate(nchain_filenames):
@@ -144,7 +146,6 @@ for index, nchain_filename in enumerate(nchain_filenames):
 
                 All_Data = All_Data.append(mirl_data, sort="full")
 
-#All_Data = All_Data.loc[All_Data["Timestep"] < 50000]
 
 print("Done Loading Results")
 print(All_Data)
@@ -154,13 +155,21 @@ Normal_Ant = All_Data.loc[All_Data["Environment"] == nchain_filenames[0]]
 Gen_Ant = All_Data.loc[All_Data["Environment"] == nchain_filenames[1]]
 Ext_Ant = All_Data.loc[All_Data["Environment"] == nchain_filenames[2]]
 
-clac_data = Normal_Ant.loc[Normal_Ant["Model"] == "CLAC"]
-sac_data = Normal_Ant.loc[Normal_Ant["Model"] == "SAC"]
-mirl_data = Normal_Ant.loc[Normal_Ant["Model"] == "MIRL"]
+clac_ant = Normal_Ant.loc[Normal_Ant["Model"] == "CLAC"]
+sac_ant = Normal_Ant.loc[Normal_Ant["Model"] == "SAC"]
+mirl_ant = Normal_Ant.loc[Normal_Ant["Model"] == "MIRL"]
 
 Normal_Walker = All_Data.loc[All_Data["Environment"] == nchain_filenames[3]]
 Gen_Walker = All_Data.loc[All_Data["Environment"] == nchain_filenames[4]]
 Ext_Walker = All_Data.loc[All_Data["Environment"] == nchain_filenames[5]]
+
+Normal_Walker = Normal_Walker.loc[Normal_Walker["Timestep"] < 50000]
+Gen_Walker = Gen_Walker.loc[Gen_Walker["Resample"] < 50]
+Ext_Walker = Ext_Walker.loc[Ext_Walker["Resample"] < 50]
+
+clac_walker = Normal_Walker.loc[Normal_Walker["Model"] == "CLAC"]
+sac_walker = Normal_Walker.loc[Normal_Walker["Model"] == "SAC"]
+mirl_walker = Normal_Walker.loc[Normal_Walker["Model"] == "MIRL"]
 
 fig, axes = plt.subplots(2, 3 , sharey='row')
 Ant_axes, Walker_axes = axes
@@ -171,13 +180,18 @@ Ant_axes, Walker_axes = axes
 sac_pal = ["blue"]
 clac_pal = ["orange"]
 
-#ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci="sd", data=Normal_Ant, ax=Ant_axes[0])
-#ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", ci="sd", data=Gen_Ant, ax=Ant_axes[1]) 
-#ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", ci="sd", data=Ext_Ant, ax=Ant_axes[2])  
+"""ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=clac_ant, ax=Ant_axes[0])
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=sac_ant, ax=Ant_axes[1]) 
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=mirl_ant, ax=Ant_axes[2])  
 
-ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=clac_data, ax=Ant_axes[0])
-ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=sac_data, ax=Ant_axes[1]) 
-ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=mirl_data, ax=Ant_axes[2])  
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=clac_walker, ax=Walker_axes[0])
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=sac_walker, ax=Walker_axes[1]) 
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Coefficient", legend="full", ci=99, data=mirl_walker, ax=Walker_axes[2])  
+"""
+
+ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci="sd", data=Normal_Ant, ax=Ant_axes[0])
+ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", ci="sd", data=Gen_Ant, ax=Ant_axes[1]) 
+ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", ci="sd", data=Ext_Ant, ax=Ant_axes[2])  
 
 ax0 = sns.lineplot(x="Timestep", y="Episode Reward", hue="Model", legend="full", ci="sd", data=Normal_Walker, ax=Walker_axes[0])
 ax0 = sns.lineplot(x="Resample", y="Episode Reward", hue="Model", legend="full", ci="sd", data=Gen_Walker, ax=Walker_axes[1]) 
@@ -209,8 +223,11 @@ Ant_axes[2].set_ylabel('', fontsize=48)
 Walker_axes[1].set_ylabel('', fontsize=48)
 Walker_axes[2].set_ylabel('', fontsize=48)
 
-Ant_axes[0].set_ylabel('Walker Reward', fontsize=32)
-Walker_axes[0].set_ylabel('Pendulum Reward', fontsize=32)
+Ant_axes[0].set_ylabel('Ant Walker Reward', fontsize=32)
+Walker_axes[0].set_ylabel('Double Pendulum Reward', fontsize=32)
+
+Ant_axes[0].get_legend().remove()
+Ant_axes[1].get_legend().remove()
 
 Walker_axes[0].get_legend().remove()
 Walker_axes[1].get_legend().remove()
@@ -218,7 +235,6 @@ Walker_axes[2].get_legend().remove()
 
 #Ant_axes[0].get_legend().remove()
 #Ant_axes[1].get_legend().remove()
-
 
 #fig.text(0.01, 0.5, 'Average Reward', va='center', rotation='vertical' , fontsize=48)
 

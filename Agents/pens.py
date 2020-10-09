@@ -28,7 +28,12 @@ from stable_baselines import SAC, CLAC
 # RobotsGen
 # RobotsExtremeGen
 
-FOLDER = "RobotsExtremeGen/InvertedDoublePendulumBulletEnv_v2" 
+# sac cheetah 0.1
+# sac hopper  0.15
+# clac cheetah 0.01
+# clac hopper 0.01
+
+FOLDER = "OldResults/Robots/HalfCheetahBulletEnv" 
 
 # Create target Directory if don't exist
 if not os.path.exists(FOLDER):
@@ -40,17 +45,17 @@ if not os.path.exists(FOLDER + "/results"):
 if not os.path.exists(FOLDER + "/features"):
     os.mkdir(FOLDER + "/features")
 
-NUM_RESAMPLES = 100
-NUM_TRAINING_STEPS = 10000
-ENVIRONMENT_NAME = "InvertedDoublePendulumBulletEnv-v0"
+NUM_RESAMPLES = 0
+NUM_TRAINING_STEPS = 5000000
+ENVIRONMENT_NAME = "HalfCheetahBulletEnv-v0"
 
-#RANDOMIZATION_LEVEL = "None"
-#RANDOMIZATION_LEVEL = "Test" 
-#RANDOMIZATION_LEVEL = "Normal" 
-RANDOMIZATION_LEVEL = "Extreme"
-CLAC_COEFS = [2.0]  
-SAC_COEFS = [2.0]
+RANDOMIZATION_LEVEL = "None"
+#RANDOMIZATION_LEVEL = "Normal" # Same as none
+#RANDOMIZATION_LEVEL = "Random"
+#RANDOMIZATION_LEVEL = "Extreme"
 
+CLAC_COEFS = [0.008, 0.01, 0.012]  
+SAC_COEFS = [0.08, 0.1, 0.12]
 
 def test_agent(agent_step):
     for coef_index in range(len(CLAC_COEFS)):
@@ -92,18 +97,16 @@ def test_agent(agent_step):
             # Set both environments to the same resampled values
             if(RANDOMIZATION_LEVEL == "Normal"):
                 clac_env.env_method("randomize", 0)
-            elif(RANDOMIZATION_LEVEL == "Extreme"):
+            elif(RANDOMIZATION_LEVEL == "Random"):
                 clac_env.env_method("randomize", 1)
+            elif(RANDOMIZATION_LEVEL == "Extreme"):
+                clac_env.env_method("randomize", 2)
             elif(RANDOMIZATION_LEVEL == "Test"):
                 clac_env.env_method("randomize", -1)
             else:
                 print("Error resampling unknown value: ", RANDOMIZATION_LEVEL)
                 continue
 
-            if(agent_step == 1):
-                print(mut_coef,  "  ",  ent_coef, "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER, " resample step ", resample_step)
-                #print(mut_coef,  "  ", NUM_TRAINING_STEPS, "  ",  ENVIRONMENT_NAME, "  ", FOLDER, " resample step ", resample_step)
-            
             env_features = clac_env.env_method("get_features")[0]
             sac_env.env_method("set_features", env_features) 
             mirl_env.env_method("set_features", env_features) 
@@ -146,7 +149,7 @@ def test_agent(agent_step):
         del mirl_env
 
 def main():
-    Agents = [1,2,3,4,5,6,7,8]
+    Agents = [1,2,3,4,5,6,7,8,9,10]
     print("Initializng workers: ", Agents)
     original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
     pool = multiprocessing.Pool(processes=len(Agents))
