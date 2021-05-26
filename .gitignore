@@ -21,6 +21,7 @@ pip-selfcheck.json
 /build
 /dist
 *.eggs
+<<<<<<< HEAD
 *.cmake
 *.so
 build3/
@@ -34,3 +35,22 @@ bulletEnv/
 
 # Results and models
 Agents/Results/*
+=======
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestFile.cmake
+
+# Visual Studio build files
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
+# Apple Finder metadata
+*.DS_Store
+
+# vim temp files
+*.swp
+>>>>>>> upstream/master
